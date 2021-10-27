@@ -1,11 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
-from parsel import Selector
 import csv
-import argparse
-from argparse import RawTextHelpFormatter
-from bs4 import BeautifulSoup
 import sys
 
 JOB=sys.argv[1]
@@ -16,7 +12,7 @@ writer = csv.writer(open('jobs_info_linkedin.csv', 'w', encoding='utf-8'))
 writer.writerow(['Company','Location','Post','Description', 'Url'])
 
 # Chrome driver
-driver = webdriver.Chrome()
+driver = webdriver.Chrome('/home/joaopires/scrapy-jobs-linkedin-main/chromedriver')
 
 # Google
 driver.get('https://google.com')
@@ -35,20 +31,9 @@ sleep(2)
 driver.get(select_page)
 sleep(5)
 
-# Set number jobs 
-number_of_jobs = 25
-i = 2
-while i <= (number_of_jobs/25): 
-    driver.find_element_by_xpath('/html/body/main/div/section/button').click()
-    i = i + 1
-    sleep(5)
-
-pageSource = driver.page_source
-lxml_soup = BeautifulSoup(pageSource, 'lxml')
-
 # Extract URLs
-jobs_list = driver.find_elements_by_class_name("result-card__full-card-link")
-jobs_link = [perfil.get_attribute('href') for perfil in jobs_list]
+jobs_list = driver.find_elements_by_class_name("base-card__full-link")
+jobs_link = [perfil.get_attribute('href') for perfil in jobs_list]  
 
 
 # Extract Informations
@@ -56,11 +41,12 @@ for perfil in jobs_link:
     driver.get(perfil)
     sleep(4)
 
-    jobs_function = driver.find_element_by_xpath('/html/body/main/section[1]/section[2]/div[1]/div[1]/h1').text
-    company_name = driver.find_element_by_xpath('/html/body/main/section[1]/section[2]/div[1]/div[1]/h3[1]/span[1]').text
-    jobs_description = driver.find_element_by_xpath('/html/body/main/section[1]/section[3]/div/section/div').text
-    local = driver.find_element_by_xpath('/html/body/main/section[1]/section[2]/div[1]/div[1]/h3[1]/span[2]').text
+    jobs_function = driver.find_element_by_xpath('//*[@id="main-content"]/section[1]/div/section[2]/div/div[1]/div/h1').text
+    company_name = driver.find_element_by_xpath('//*[@id="main-content"]/section[1]/div/section[2]/div/div[1]/div/h4/div[1]/span[1]/a').text
+    jobs_description = driver.find_element_by_class_name("show-more-less-html__markup").text
+    local = driver.find_element_by_xpath('//*[@id="main-content"]/section[1]/div/section[2]/div/div[1]/div/h4/div[1]/span[2]').text
     jobs_link = perfil
+    
 
     # Write in .csv file
     writer.writerow([company_name,local,jobs_function,jobs_description, jobs_link])
